@@ -1,0 +1,1093 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>مراجعة وتعزيز القسمة | تطبيق تفاعلي</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    *{ font-family: 'Tajawal', system-ui, -apple-system, Segoe UI, Arial, sans-serif; }
+
+    /* ✅ وضوح أعلى للنص */
+    html{ font-size: 18px; }
+    @media (max-width: 640px){ html{ font-size: 16.5px; } }
+
+    body{
+      background: linear-gradient(180deg,#fff7ed,#ffffff);
+      color:#0f172a;               /* تباين أعلى */
+      line-height: 1.9;            /* سطرية أوضح */
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      padding-bottom: 84px;        /* مساحة للتذييل الثابت */
+    }
+
+    .card{ border:1px solid rgba(15,23,42,.10); box-shadow: 0 10px 25px rgba(2,6,23,.06); }
+    .pill{ border:1px solid rgba(15,23,42,.14); }
+    .hl{ background: #FEF08A; padding: 0 .35rem; border-radius: .35rem; }
+    .muted{ color:#334155; }      /* ✅ كان فاتح، صار أوضح */
+
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      border:1px solid rgba(15,23,42,.18); border-bottom-width:2px; border-radius:.5rem; padding:.1rem .4rem; background:#fff;
+    }
+    .shake{ animation: shake .25s linear 1; }
+    @keyframes shake{ 0%{transform:translateX(0)} 25%{transform:translateX(3px)} 50%{transform:translateX(-3px)} 75%{transform:translateX(2px)} 100%{transform:translateX(0)} }
+
+    /* Print */
+    @media print{
+      .no-print{ display:none !important; }
+      #fixedFooter{ display:none !important; } /* لا يغطي المحتوى عند الطباعة */
+      body{ background:#fff; padding-bottom: 0; }
+      .print-area{ column-count:2; column-gap:1.2rem; }
+      .card{ box-shadow:none; }
+      input, button, select, textarea{ display:none !important; }
+      .print-show-blank{
+        display:inline-block !important;
+        border-bottom:2px dotted #111827;
+        min-width:80px;
+        height: 1.1em;
+        vertical-align: baseline;
+      }
+    }
+    .print-show-blank{ display:none; }
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <div id="contentRoot" class="max-w-6xl mx-auto p-4 md:p-6">
+    <!-- Header -->
+    <header class="no-print card rounded-2xl bg-white p-4 md:p-6 flex flex-col gap-4">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold">📘 مراجعة وتعزيز القسمة — تطبيق تفاعلي</h1>
+          <p class="muted mt-1">تسلسل: مراجعة السابق → أساسيات → تدريب وتطبيق → إضافات → مهارات عليا → اختبار شامل (نمط نافس)</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btnHome" class="pill px-3 py-2 rounded-xl bg-slate-900 text-white hover:opacity-95">
+            🏠 الصفحة الرئيسية
+          </button>
+
+          <button id="btnReset" class="pill px-3 py-2 rounded-xl bg-white hover:bg-slate-50">
+            ♻️ تصفير التقدّم
+          </button>
+
+          <button id="btnPrintStudent" class="pill px-3 py-2 rounded-xl bg-white hover:bg-slate-50">
+            🖨️ طباعة نسخة الطالب
+          </button>
+          <button id="btnPrintTeacher" class="pill px-3 py-2 rounded-xl bg-white hover:bg-slate-50">
+            🖨️ طباعة نسخة المعلم
+          </button>
+
+          <div class="flex items-center gap-2 pill px-3 py-2 rounded-xl bg-amber-50">
+            <span class="text-sm font-bold">الوضع</span>
+            <button id="toggleMode" class="pill px-3 py-1.5 rounded-lg bg-white hover:bg-amber-100 text-sm font-bold">
+              طالب
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="grid md:grid-cols-3 gap-3">
+        <div class="card rounded-2xl p-4 bg-slate-50">
+          <div class="text-sm muted">مستوى الإتقان العام</div>
+          <div class="flex items-baseline gap-2 mt-1">
+            <div id="overallPct" class="text-3xl font-extrabold">٠٪</div>
+            <div class="muted text-sm">من الأسئلة المُقيمة</div>
+          </div>
+          <div class="mt-3 h-2 rounded-full bg-slate-200 overflow-hidden">
+            <div id="overallBar" class="h-full bg-slate-900 w-0"></div>
+          </div>
+          <div class="muted text-xs mt-2">نصيحة: إذا نزلت عن ٧٠٪ ارجع لمهارة “الحقائق المترابطة” قبل الإكمال.</div>
+        </div>
+
+        <div class="card rounded-2xl p-4 bg-white">
+          <div class="text-sm muted">تنبيه تربوي سريع</div>
+          <p class="mt-2 text-sm leading-7">
+            عند أي خطأ متكرر: <span class="hl font-bold">ارجع للأساس</span> (حقائق مترابطة/عدّ بالعشرات/قواعد الصفر والواحد)، ثم جرّب مرة أخرى.
+          </p>
+          <div class="mt-3 text-xs muted">
+            اختصارات: <span class="kbd">تحقق</span> لتصحيح الإجابة — <span class="kbd">إظهار</span> لعرض الحل (في وضع المعلم).
+          </div>
+        </div>
+
+        <div class="card rounded-2xl p-4 bg-white">
+          <div class="text-sm muted">مفتاح التظليل</div>
+          <p class="mt-2 text-sm leading-7">
+            أي قاعدة أو جزء مهم يظهر بتظليل <span class="hl font-bold">أصفر</span> مثل الكتاب.
+          </p>
+          <p class="mt-2 text-xs muted">
+            في الطباعة: تُطبع “فراغات” بدل حقول الإدخال تلقائيًا.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main id="app" class="mt-4 md:mt-6"></main>
+
+    <!-- Footer (آخر الصفحة + الطباعة) -->
+    <footer class="mt-8 card rounded-2xl bg-white p-4 text-center">
+      <div class="text-sm font-bold">ملتقى معلمي ومعلمات الرياضيات | الملتقى التفاعلي</div>
+      <div class="text-xs muted mt-1">أ/ فاطمة هزازي</div>
+      <div class="text-xs muted mt-2">© <span id="year"></span></div>
+    </footer>
+  </div>
+
+  <!-- ✅ تذييل ثابت -->
+  <div id="fixedFooter" class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-t border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 py-2 text-center text-sm font-extrabold text-slate-800">
+      أ/ فاطمة هزازي
+    </div>
+  </div>
+
+<script>
+/* =========================
+   ✅ Arabic Digits Support
+   - عرض الأرقام عربية
+   - قبول إدخال عربي/إنجليزي
+========================= */
+const AR_NUM = { "0":"٠","1":"١","2":"٢","3":"٣","4":"٤","5":"٥","6":"٦","7":"٧","8":"٨","9":"٩" };
+const TO_WEST = {
+  "٠":"0","١":"1","٢":"2","٣":"3","٤":"4","٥":"5","٦":"6","٧":"7","٨":"8","٩":"9",
+  "۰":"0","۱":"1","۲":"2","۳":"3","۴":"4","۵":"5","۶":"6","۷":"7","۸":"8","۹":"9"
+};
+
+function toArabicDigits(x){
+  return String(x).replace(/[0-9]/g, d => AR_NUM[d]);
+}
+function toWesternDigits(x){
+  return String(x).replace(/[٠-٩۰-۹]/g, ch => TO_WEST[ch] ?? ch);
+}
+function fmtPercent(n){
+  return toArabicDigits(String(n)) + "٪";
+}
+function arabizeDigitsInTextNodes(root){
+  if(!root) return;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node){
+      const v = node.nodeValue;
+      if(!v || !/[0-9]/.test(v)) return NodeFilter.FILTER_REJECT;
+      const p = node.parentElement;
+      if(!p) return NodeFilter.FILTER_REJECT;
+      const tag = p.tagName;
+      if(tag === "SCRIPT" || tag === "STYLE" || tag === "CODE" || tag === "PRE") return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  let n;
+  while((n = walker.nextNode())){
+    n.nodeValue = toArabicDigits(n.nodeValue);
+  }
+}
+
+/* =========================
+   Data + State
+========================= */
+const APP_KEY = "division_skill_app_v1";
+const state = {
+  mode: "student",            // student | teacher
+  route: "home",              // home | module:<id>
+  progress: {},               // { qid: {attempted:true, correct:true/false, ts:number} }
+  dynamicQuestions: {}        // per generator / solved toggles
+};
+
+const modules = [
+  {
+    id: "diag",
+    title: "استدعاء سريع لما سبق (تشخيص)",
+    icon: "🧭",
+    goal: "تحدد مستوى الأساس خلال دقيقة قبل الانتقال.",
+    feedback: [
+      "إذا أخطأت في الحقائق المترابطة: ارجع لمهارة (Fact Family) قبل الإكمال.",
+      "إذا أخطأت في القسمة على 10: راجع العدّ بالعشرات.",
+      "إذا أخطأت في قسمة الصفر/على الواحد: ثبّت القواعد الأربع."
+    ],
+    blocks: [
+      noteBlock("الفكرة", `ابدأ بهذه الأسئلة لتعرف: هل تحتاج تعزيز مهارة مفقودة أو أنت جاهز للمهارة الحالية؟`),
+      quizBlock("أسئلة تشخيصية", [
+        qInput("diag_1", `احسب: <span class="hl">30 ÷ 10</span> =`, "3", "تذكّر: كم عشرة في 30؟"),
+        qInput("diag_2", `احسب: <span class="hl">45 ÷ 5</span> =`, "9", "استخدم الحقائق المترابطة: 5×9=45."),
+        qInput("diag_3", `أكمل: <span class="hl">6 × 9 = 54</span> إذن <span class="hl">54 ÷ 6</span> =`, "9", "إذا a×b=c إذن c÷a=b."),
+        qInput("diag_4", `احسب: <span class="hl">8 × 10</span> =`, "80", "مضاعفات 10 تنتهي بصفر."),
+        qInput("diag_5", `احسب: <span class="hl">0 ÷ 7</span> =`, "0", "قاعدة: 0 ÷ عدد = 0 (ما دام العدد ليس 0).")
+      ]),
+      tipBlock("تغذية راجعة فورية", `
+        ✅ إذا حصلت على <span class="hl font-bold">4/5 أو 5/5</span> انتقل مباشرة للمهارة الحالية.<br>
+        ❌ إذا حصلت على أقل من ذلك: ركّز أولًا على المهارة التي أخطأت فيها، ثم أعد المحاولة.
+      `)
+    ]
+  },
+
+  {
+    id: "factfamily",
+    title: "المهارة السابقة: الحقائق المترابطة (Fact Family)",
+    icon: "🔁",
+    goal: "تربط الضرب بالقسمة لتصل للناتج بسرعة وثقة.",
+    feedback: [
+      "إذا خلطت بين المقسوم والمقسوم عليه: تذكّر أن المقسوم غالبًا هو العدد الأكبر هنا.",
+      "إذا كتبت أقل من 4 جمل: أكمل (جملتين ضرب + جملتين قسمة).",
+      "إذا تكررت الأخطاء: راجع جدول الضرب المرتبط قبل العودة للقسمة."
+    ],
+    blocks: [
+      noteBlock("الأساسيات", `
+        إذا كانت <span class="hl">a × b = c</span> فهناك 4 جمل مترابطة:
+        <div class="mt-2 leading-8">
+          • a × b = c<br>
+          • b × a = c<br>
+          • c ÷ a = b<br>
+          • c ÷ b = a
+        </div>
+      `),
+      solvedBlock("مثال محلول (مظلل)", [
+        `إذا كانت <span class="hl font-bold">6 × 9 = 54</span>`,
+        `إذن <span class="hl font-bold">54 ÷ 6 = 9</span>`,
+        `و <span class="hl font-bold">54 ÷ 9 = 6</span>`
+      ], "factfamily_solved_1"),
+      quizBlock("تدريب (اكتب الناتج)", [
+        qInput("ff_1", `احسب: <span class="hl">50 ÷ 10</span> =`, "5", "لأن 10×5=50."),
+        qInput("ff_2", `احسب: <span class="hl">56 ÷ 7</span> =`, "8", "لأن 7×8=56."),
+        qInput("ff_3", `احسب: <span class="hl">56 ÷ 8</span> =`, "7", "لأن 8×7=56."),
+        qInput("ff_4", `أكمل: إذا <span class="hl">9 × 10 = 90</span> إذن <span class="hl">90 ÷ 9</span> =`, "10", "c÷a=b."),
+        qInput("ff_5", `أكمل: إذا <span class="hl">5 × 10 = 50</span> إذن <span class="hl">50 ÷ 5</span> =`, "10", "حقائق مترابطة.")
+      ]),
+      openBlock("مهارات عليا", [
+        "اشرح: لماذا لا يمكن كتابة أكثر من 4 جمل مترابطة لمجموعة (4،6،24)؟",
+        "كوّن مجموعة حقائق مترابطة من اختيارك، ثم اكتب الجمل الأربع."
+      ], "ff_open_1"),
+      tipBlock("تغذية راجعة للمهارة", `
+        ✅ إذا أجبت بدون تردد: ممتاز — انتقل للقسمة على 10.<br>
+        ❌ إذا توقفت كثيرًا: راجع جدول الضرب المرتبط، ثم أعد حل نفس الأسئلة.
+      `)
+    ]
+  },
+
+  {
+    id: "div5",
+    title: "المهارة السابقة: القسمة على 5",
+    icon: "🧩",
+    goal: "تثبت نمط القسمة على 5 قبل الانتقال لنمط 10.",
+    feedback: [
+      "إذا نسيت جدول 5: اكتب 5×1 إلى 5×10 ثم ارجع للقسمة.",
+      "إذا أخطأت في 35÷5 أو 45÷5: راجع مضاعفات 5 بالعد (5،10،15...)."
+    ],
+    blocks: [
+      noteBlock("تذكير", `القسمة على 5 ترتبط بمضاعفات 5. استخدم الحقائق المترابطة للوصول للناتج بسرعة.`),
+      solvedBlock("مثال محلول (مظلل)", [
+        `<span class="hl font-bold">45 ÷ 5 = ؟</span>`,
+        `فكر: <span class="hl">5 × 9 = 45</span>`,
+        `إذن <span class="hl font-bold">45 ÷ 5 = 9</span>`
+      ], "div5_solved_1"),
+      quizBlock("تدريب", [
+        qInput("d5_1", `احسب: <span class="hl">25 ÷ 5</span> =`, "5", "5×5=25."),
+        qInput("d5_2", `احسب: <span class="hl">50 ÷ 5</span> =`, "10", "5×10=50."),
+        qInput("d5_3", `احسب: <span class="hl">40 ÷ 5</span> =`, "8", "5×8=40."),
+        qInput("d5_4", `احسب: <span class="hl">35 ÷ 5</span> =`, "7", "5×7=35.")
+      ]),
+      tipBlock("تغذية راجعة للمهارة", `
+        ✅ إذا وصلت للناتج عبر الحقائق المترابطة: أنت جاهز للقسمة على 10.<br>
+        ❌ إذا كان حلّك بالتخمين: ارجع للحقيقة (5×؟=العدد) ثم احسب.
+      `)
+    ]
+  },
+
+  {
+    id: "div10",
+    title: "المهارة الحالية: القسمة على 10",
+    icon: "🎯",
+    goal: "تتقن القسمة على 10 عبر العد بالعشرات والحقائق المترابطة.",
+    feedback: [
+      "إذا كتبت الناتج مثل العدد الأصلي: تذكّر أن القسمة على 10 تُقلّل العدد.",
+      "إذا خلطت الصفر: اسأل نفسك: كم عشرة في العدد؟",
+      "إذا أخطأت في 100÷10: ثبّت مفهوم (10 عشرات = 100)."
+    ],
+    blocks: [
+      noteBlock("الأساسيات (كما في الكتاب)", `
+        طريقتان ذهبيتان:
+        <div class="mt-2 leading-8">
+          • <span class="hl font-bold">العد بالعشرات</span>: كم عشرة في العدد؟<br>
+          • <span class="hl font-bold">الحقائق المترابطة</span>: إذا 10×ن = العدد إذن العدد÷10 = ن
+        </div>
+      `),
+      solvedBlock("مثال 1 (عدّ عشرات)", [
+        `<span class="hl font-bold">80 ÷ 10</span>`,
+        `80 فيها <span class="hl">8 عشرات</span>`,
+        `إذن الناتج <span class="hl font-bold">8</span>`
+      ], "div10_solved_1"),
+      solvedBlock("مثال 2 (حقائق مترابطة)", [
+        `<span class="hl font-bold">50 ÷ 10</span>`,
+        `لأن <span class="hl">10 × 5 = 50</span>`,
+        `إذن <span class="hl font-bold">50 ÷ 10 = 5</span>`
+      ], "div10_solved_2"),
+      quizBlock("تدريب (تطبيق القانون)", [
+        qInput("d10_1", `احسب: <span class="hl">20 ÷ 10</span> =`, "2", "كم عشرة في 20؟"),
+        qInput("d10_2", `احسب: <span class="hl">40 ÷ 10</span> =`, "4", "كم عشرة في 40؟"),
+        qInput("d10_3", `احسب: <span class="hl">60 ÷ 10</span> =`, "6", "كم عشرة في 60؟"),
+        qInput("d10_4", `احسب: <span class="hl">70 ÷ 10</span> =`, "7", "كم عشرة في 70؟"),
+        qInput("d10_5", `احسب: <span class="hl">90 ÷ 10</span> =`, "9", "كم عشرة في 90؟"),
+        qInput("d10_6", `احسب: <span class="hl">100 ÷ 10</span> =`, "10", "100 فيها 10 عشرات.")
+      ]),
+      quizBlock("تدريب (اختيار من متعدد — نمط نافس)", [
+        qMCQ("d10_mcq_1", `ناتج <span class="hl">90 ÷ 10</span> يساوي:`, ["9","10","90","0"], 0, "قاعدة: العدد ÷ 10 = عدد العشرات."),
+        qMCQ("d10_mcq_2", `إذا كان <span class="hl">9 = 90 ÷ □</span> فإن □ يساوي:`, ["1","10","81","100"], 1, "لأن 90 ÷ 10 = 9.")
+      ]),
+      openBlock("مهارات عليا", [
+        "اكتب طريقتين لحل 50 ÷ 10 (عد عشرات / حقائق مترابطة).",
+        "كوّن عددين من رقمين ينتهيان بصفر، ثم اكتب قسمة كل عدد على 10."
+      ], "div10_open_1"),
+      generatorBlock("مولد تمارين إضافية (للتأكيد)", "div10_gen", [
+        { label:"اختر العدد", type:"select", key:"base", options:["20","30","40","50","60","70","80","90","100"] },
+        { label:"عدد الأسئلة", type:"number", key:"count", min: 3, max: 15, value: 6 }
+      ], (cfg) => genDivisionBy10(cfg.base, cfg.count)),
+      tipBlock("تغذية راجعة للمهارة", `
+        ✅ إذا كنت تحل بسرعة عبر “كم عشرة؟”: ممتاز.<br>
+        ❌ إذا تتكرر أخطاؤك: اكتب مضاعفات 10 حتى 100 ثم أعد الحل.
+      `)
+    ]
+  },
+
+  {
+    id: "zeroone",
+    title: "المهارة الحالية: القسمة مع الصفر وعلى الواحد",
+    icon: "🧠",
+    goal: "تثبت قواعد الصفر والواحد وتستخدمها في الاختبارات.",
+    feedback: [
+      "إذا ظننت أن a÷a=a: تذكّر أن الناتج 1 (ما دام a≠0).",
+      "إذا قبلت القسمة على الصفر: هذا غير ممكن دائمًا.",
+      "إذا خلطت 0÷a: قاعدة ثابتة = 0."
+    ],
+    blocks: [
+      noteBlock("القواعد الأربع (مظللة)", `
+        <div class="leading-9">
+          1) <span class="hl font-bold">a ÷ a = 1</span> (إذا كان a ≠ 0)<br>
+          2) <span class="hl font-bold">a ÷ 1 = a</span><br>
+          3) <span class="hl font-bold">0 ÷ a = 0</span> (إذا كان a ≠ 0)<br>
+          4) <span class="hl font-bold">لا يمكن القسمة على 0</span>
+        </div>
+      `),
+      solvedBlock("أمثلة محلولة (مظللة)", [
+        `<span class="hl">7 ÷ 7 = 1</span>`,
+        `<span class="hl">9 ÷ 1 = 9</span>`,
+        `<span class="hl">0 ÷ 7 = 0</span>`,
+        `<span class="hl">7 ÷ 0</span> غير ممكن`
+      ], "zeroone_solved_1"),
+      quizBlock("تدريب (صح/خطأ)", [
+        qTF("zo_tf_1", `عبارة: <span class="hl">6 ÷ 6 = 6</span>`, false, "الصحيح: 6÷6=1."),
+        qTF("zo_tf_2", `عبارة: <span class="hl">9 ÷ 1 = 9</span>`, true, "قاعدة: a÷1=a."),
+        qTF("zo_tf_3", `عبارة: <span class="hl">0 ÷ 5 = 0</span>`, true, "قاعدة: 0÷عدد=0."),
+        qTF("zo_tf_4", `عبارة: <span class="hl">5 ÷ 0 = 0</span>`, false, "لا يمكن القسمة على 0.")
+      ]),
+      quizBlock("تدريب (أدخل الناتج)", [
+        qInput("zo_1", `احسب: <span class="hl">8 ÷ 8</span> =`, "1", "a÷a=1 (إذا a≠0)."),
+        qInput("zo_2", `احسب: <span class="hl">12 ÷ 1</span> =`, "12", "a÷1=a."),
+        qInput("zo_3", `احسب: <span class="hl">0 ÷ 9</span> =`, "0", "0÷a=0.")
+      ]),
+      openBlock("مهارات عليا", [
+        "اشرح: لماذا 0 ÷ 7 = 0 باستخدام معنى القسمة كتوزيع؟",
+        "اكتب مسألة من واقع الحياة تمثل: عدد ÷ عدد = 1."
+      ], "zo_open_1"),
+      tipBlock("تغذية راجعة للمهارة", `
+        ✅ إذا طبّقت القواعد مباشرة: ممتاز — أنت جاهز للاختبار الشامل.<br>
+        ❌ إذا أخطأت في قاعدة واحدة: اكتب القواعد الأربع ثم حل 5 أمثلة سريعة.
+      `)
+    ]
+  },
+
+  {
+    id: "nafes",
+    title: "اختبار وتقويم شامل (نمط نافس)",
+    icon: "📝",
+    goal: "تقيس الإتقان: تطبيق مباشر + مهارات عليا + اختيار من متعدد بمشتتات.",
+    feedback: [
+      "إذا أخطأت في سؤالين أو أكثر من نفس المهارة: عد للمراجعة الخاصة بها ثم أعد الاختبار.",
+      "إذا كانت أخطاؤك في المشتتات: اقرأ السؤال ببطء وحدد الكلمة المفتاحية (÷10 / ÷1 / 0÷...)."
+    ],
+    blocks: [
+      noteBlock("تعليمات الاختبار", `
+        أجب بهدوء. بعد الانتهاء اضغط <span class="kbd">تحقق</span> لكل سؤال. في وضع الطالب لن تظهر الإجابات إلا بعد المحاولة.
+      `),
+      quizBlock("أسئلة قصيرة (10)", [
+        qInput("nf_1", `احسب: <span class="hl">60 ÷ 10</span> =`, "6", "كم عشرة في 60؟"),
+        qInput("nf_2", `احسب: <span class="hl">30 ÷ 10</span> =`, "3", "كم عشرة في 30؟"),
+        qInput("nf_3", `احسب: <span class="hl">0 ÷ 9</span> =`, "0", "0÷عدد=0."),
+        qInput("nf_4", `احسب: <span class="hl">9 ÷ 1</span> =`, "9", "a÷1=a."),
+        qInput("nf_5", `احسب: <span class="hl">8 ÷ 8</span> =`, "1", "a÷a=1."),
+        qMCQ("nf_6", `ناتج <span class="hl">100 ÷ 10</span> يساوي:`, ["1","10","100","0"], 1, "100 فيها 10 عشرات."),
+        qMCQ("nf_7", `أي عبارة صحيحة؟`, ["7 ÷ 0 = 7","0 ÷ 7 = 0","6 ÷ 6 = 6","9 ÷ 1 = 1"], 1, "0÷عدد=0."),
+        qMCQ("nf_8", `إذا كان <span class="hl">10 × 6 = 60</span> فإن <span class="hl">60 ÷ 10</span> =`, ["10","6","60","0"], 1, "حقائق مترابطة."),
+        qTF("nf_9", `عبارة: <span class="hl">0 ÷ 7 = 7</span>`, false, "الصحيح: 0÷7=0."),
+        qTF("nf_10", `عبارة: <span class="hl">7 ÷ 7 = 1</span>`, true, "قاعدة: a÷a=1 (إذا a≠0).")
+      ]),
+      openBlock("مهارات عليا (قياس)", [
+        "اكتب طريقتين لحل 80 ÷ 10.",
+        "فسّر: لماذا لا يمكن القسمة على 0؟"
+      ], "nf_open_1"),
+      tipBlock("نتيجة وتوجيه", `
+        ✅ إذا حصلت على <span class="hl font-bold">80% فأعلى</span>: ممتاز — ثبّت المهارة بتمارين مولدة إضافية.<br>
+        ❌ إذا كنت أقل من 80%: عد لمهارة الأخطاء ثم أعد الاختبار.
+      `)
+    ]
+  }
+];
+
+/* =========================
+   Block Builders
+========================= */
+function noteBlock(title, html){ return { type:"note", title, html }; }
+function tipBlock(title, html){ return { type:"tip", title, html }; }
+function solvedBlock(title, steps, key){ return { type:"solved", title, steps, key }; }
+function openBlock(title, prompts, key){ return { type:"open", title, prompts, key }; }
+function quizBlock(title, questions){ return { type:"quiz", title, questions }; }
+function generatorBlock(title, key, fields, onGenerate){ return { type:"generator", title, key, fields, onGenerate }; }
+
+/* =========================
+   Question Builders
+========================= */
+function qInput(id, promptHtml, answer, hint){
+  return { id, type:"input", promptHtml, answer: String(answer).trim(), hint: hint || "" };
+}
+function qMCQ(id, promptHtml, choices, correctIndex, hint){
+  return { id, type:"mcq", promptHtml, choices, correctIndex, hint: hint || "" };
+}
+function qTF(id, promptHtml, correctBool, hint){
+  return { id, type:"tf", promptHtml, correctBool: !!correctBool, hint: hint || "" };
+}
+
+/* =========================
+   Generator
+========================= */
+function genDivisionBy10(base, count){
+  const n = Number(toWesternDigits(base));
+  let c = parseInt(toWesternDigits(count), 10);
+  if(!Number.isFinite(c)) c = 6;
+  c = Math.max(3, Math.min(15, c));
+
+  const out = [];
+  const baseId = `gen_d10_${n}_${Date.now()}`;
+  for(let i=0;i<c;i++){
+    const id = `${baseId}_${i+1}`;
+    out.push(qInput(id, `احسب: <span class="hl">${n} ÷ 10</span> =`, String(n/10), "تذكّر: كم عشرة في العدد؟"));
+  }
+  return out;
+}
+
+/* =========================
+   Storage
+========================= */
+function load(){
+  try{
+    const raw = localStorage.getItem(APP_KEY);
+    if(!raw) return;
+    const data = JSON.parse(raw);
+    if(data && typeof data === "object"){
+      Object.assign(state, data);
+    }
+  }catch(e){}
+}
+function save(){
+  localStorage.setItem(APP_KEY, JSON.stringify({
+    mode: state.mode,
+    route: state.route,
+    progress: state.progress,
+    dynamicQuestions: state.dynamicQuestions
+  }));
+}
+
+/* =========================
+   Helpers
+========================= */
+function setProgress(qid, correct){
+  state.progress[qid] = { attempted:true, correct: !!correct, ts: Date.now() };
+  save();
+  updateOverall();
+}
+function getProgress(qid){
+  return state.progress[qid] || { attempted:false, correct:false };
+}
+function normalizeAnswer(s){
+  return toWesternDigits(String(s ?? "")).replace(/\s+/g,"").trim();
+}
+function computeOverall(){
+  const entries = Object.values(state.progress).filter(x => x.attempted);
+  if(entries.length === 0) return { pct: 0, total: 0, correct: 0 };
+  const correct = entries.filter(x => x.correct).length;
+  const pct = Math.round((correct / entries.length) * 100);
+  return { pct, total: entries.length, correct };
+}
+
+/* =========================
+   Rendering
+========================= */
+const app = document.getElementById("app");
+const overallPct = document.getElementById("overallPct");
+const overallBar = document.getElementById("overallBar");
+const toggleModeBtn = document.getElementById("toggleMode");
+const btnHome = document.getElementById("btnHome");
+const btnReset = document.getElementById("btnReset");
+const btnPrintStudent = document.getElementById("btnPrintStudent");
+const btnPrintTeacher = document.getElementById("btnPrintTeacher");
+const yearEl = document.getElementById("year");
+
+yearEl.textContent = toArabicDigits(new Date().getFullYear());
+
+function updateOverall(){
+  const { pct } = computeOverall();
+  overallPct.textContent = fmtPercent(pct);
+  overallBar.style.width = pct + "%";
+}
+
+function render(){
+  updateOverall();
+  toggleModeBtn.textContent = (state.mode === "teacher") ? "معلم" : "طالب";
+
+  if(state.route === "home"){
+    renderHome();
+  } else if(state.route.startsWith("module:")){
+    const id = state.route.split(":")[1];
+    const m = modules.find(x => x.id === id);
+    if(!m){ state.route="home"; save(); return renderHome(); }
+    renderModule(m);
+  } else {
+    state.route="home"; save(); renderHome();
+  }
+
+  // ✅ حول أي أرقام ظلت في النصوص إلى عربية
+  arabizeDigitsInTextNodes(document.getElementById("contentRoot"));
+}
+
+function renderHome(){
+  const cards = modules.map(m => {
+    const stats = moduleStats(m);
+    return `
+      <button class="card rounded-2xl bg-white p-5 text-right hover:bg-slate-50 transition"
+              onclick="goModule('${m.id}')">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="text-2xl font-extrabold">${m.icon} ${m.title}</div>
+            <div class="muted mt-1">${m.goal}</div>
+          </div>
+          <div class="text-left">
+            <div class="text-sm muted">إتقان</div>
+            <div class="text-2xl font-extrabold">${toArabicDigits(stats.pct)}٪</div>
+          </div>
+        </div>
+        <div class="mt-4 h-2 rounded-full bg-slate-200 overflow-hidden">
+          <div class="h-full bg-slate-900" style="width:${stats.pct}%"></div>
+        </div>
+      </button>
+    `;
+  }).join("");
+
+  app.innerHTML = `
+    <section class="grid lg:grid-cols-2 gap-4">
+      <div class="card rounded-2xl bg-white p-6">
+        <h2 class="text-xl font-extrabold">ابدأ بالطريقة الصحيحة</h2>
+        <p class="muted mt-2 leading-8">
+          اختر وحدة، ثم حلّ الأسئلة بالتسلسل.
+          ستأخذ <span class="hl font-bold">تغذية راجعة</span> بعد كل محاولة.
+          في وضع المعلم ستظهر الحلول والتلميحات مباشرة.
+        </p>
+
+        <div class="mt-4 grid md:grid-cols-2 gap-3">
+          <div class="card rounded-2xl bg-amber-50 p-4">
+            <div class="font-extrabold">🟨 تمارين محلولة</div>
+            <div class="muted text-sm mt-1">بنفس فكرة الكتاب مع تظليل أصفر.</div>
+          </div>
+          <div class="card rounded-2xl bg-slate-50 p-4">
+            <div class="font-extrabold">📌 تعزيز المهارة</div>
+            <div class="muted text-sm mt-1">من المهارة المفقودة إلى المكتسبة.</div>
+          </div>
+        </div>
+
+        <div class="mt-4 card rounded-2xl bg-white p-4">
+          <div class="font-extrabold">نصيحة سريعة</div>
+          <p class="muted mt-1 leading-7">
+            إذا واجهت خطأ متكرر في القسمة على 10: ارجع للحقائق المترابطة أولًا ثم عد للتمارين.
+          </p>
+        </div>
+      </div>
+
+      <div class="card rounded-2xl bg-white p-6">
+        <h2 class="text-xl font-extrabold">الوحدات المتاحة</h2>
+        <div class="mt-4 grid gap-3">
+          ${cards}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderModule(m){
+  const stats = moduleStats(m);
+  const blocksHtml = m.blocks.map(b => renderBlock(b, m)).join("");
+
+  app.innerHTML = `
+    <section class="card rounded-2xl bg-white p-5 md:p-6">
+      <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+        <div>
+          <div class="text-2xl font-extrabold">${m.icon} ${m.title}</div>
+          <div class="muted mt-1">${m.goal}</div>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <span class="pill px-3 py-1 rounded-full bg-slate-50 text-sm">
+              إتقان هذه الوحدة: <span class="font-extrabold">${toArabicDigits(stats.pct)}٪</span>
+            </span>
+            <span class="pill px-3 py-1 rounded-full bg-amber-50 text-sm">
+              أسئلة مُقيمة: <span class="font-extrabold">${toArabicDigits(stats.total)}</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="no-print card rounded-2xl bg-slate-50 p-4 min-w-[260px]">
+          <div class="font-extrabold">تغذية راجعة للمهارة</div>
+          <ul class="mt-2 text-sm muted leading-7 list-disc pr-5">
+            ${m.feedback.map(x => `<li>${x}</li>`).join("")}
+          </ul>
+        </div>
+      </div>
+
+      <hr class="my-5">
+
+      <div class="print-area">
+        ${blocksHtml}
+      </div>
+
+      <div class="no-print mt-6 flex flex-wrap gap-2">
+        <button class="pill px-4 py-2 rounded-xl bg-slate-900 text-white hover:opacity-95" onclick="goHome()">⬅️ رجوع</button>
+        <button class="pill px-4 py-2 rounded-xl bg-white hover:bg-slate-50" onclick="scrollToTop()">⬆️ للأعلى</button>
+      </div>
+    </section>
+  `;
+}
+
+function renderBlock(b){
+  if(b.type === "note"){
+    return blockShell("📌 " + b.title, b.html, "bg-white");
+  }
+  if(b.type === "tip"){
+    return blockShell("✅ " + b.title, b.html, "bg-amber-50");
+  }
+  if(b.type === "solved"){
+    const key = b.key || ("solved_" + Math.random());
+    const btn = `
+      <button class="no-print pill px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-sm font-bold"
+              onclick="toggleSolved('${key}')">
+        ${ showSolved(key) ? "إخفاء الخطوات" : "إظهار الخطوات" }
+      </button>
+    `;
+    const body = `
+      <div class="flex items-start justify-between gap-3">
+        <div class="muted text-sm leading-7">
+          هذا مثال محلول. في وضع الطالب استخدم زر “إظهار الخطوات” بعد المحاولة.
+        </div>
+        ${btn}
+      </div>
+      <div class="mt-3 ${showSolved(key) || state.mode==='teacher' ? "" : "hidden"}" id="sol_${key}">
+        <ol class="list-decimal pr-5 leading-9">
+          ${b.steps.map(s => `<li>${s}</li>`).join("")}
+        </ol>
+      </div>
+    `;
+    return blockShell("🟨 " + b.title, body, "bg-white");
+  }
+  if(b.type === "quiz"){
+    const qHtml = b.questions.map(q => renderQuestion(q)).join("");
+    return blockShell("🧪 " + b.title, `<div class="grid gap-3">${qHtml}</div>`, "bg-white");
+  }
+  if(b.type === "open"){
+    const body = `
+      <ul class="list-disc pr-5 leading-8">
+        ${b.prompts.map(p => `<li>${p}</li>`).join("")}
+      </ul>
+      <div class="mt-3 card rounded-2xl bg-slate-50 p-4">
+        <div class="font-extrabold">توجيه (مهارات عليا)</div>
+        <p class="muted mt-1 leading-7">
+          اكتب فكرتك ثم قدّم مثالًا. إذا كنت معلمًا، اطلب من الطالب تبرير الإجابة وليس كتابة الناتج فقط.
+        </p>
+      </div>
+    `;
+    return blockShell("🧠 " + b.title, body, "bg-white");
+  }
+  if(b.type === "generator"){
+    const key = b.key;
+    const stored = state.dynamicQuestions[key] || [];
+    const fields = b.fields.map(f => renderField(key, f)).join("");
+
+    const generatedHtml = stored.length ? `
+      <div class="mt-4">
+        <div class="font-extrabold">الأسئلة المولّدة</div>
+        <div class="mt-2 grid gap-3">
+          ${stored.map(q => renderQuestion(q)).join("")}
+        </div>
+      </div>
+    ` : `<div class="mt-4 muted text-sm">لم تولّد أسئلة بعد — اختر الإعدادات ثم اضغط “توليد”.</div>`;
+
+    const body = `
+      <div class="muted text-sm leading-7">استخدم هذا القسم لإضافة تدريب وتأكيد جديدين بعد إتقان الأساسيات.</div>
+      <div class="mt-3 grid md:grid-cols-2 gap-3 no-print">
+        ${fields}
+      </div>
+      <div class="mt-3 no-print flex flex-wrap gap-2">
+        <button class="pill px-4 py-2 rounded-xl bg-slate-900 text-white hover:opacity-95" onclick="runGenerator('${key}')">⚡️ توليد</button>
+        <button class="pill px-4 py-2 rounded-xl bg-white hover:bg-slate-50" onclick="clearGenerator('${key}')">🧹 مسح المولّد</button>
+      </div>
+      ${generatedHtml}
+    `;
+
+    window.__generators = window.__generators || {};
+    window.__generators[key] = b.onGenerate;
+
+    return blockShell("➕ " + b.title, body, "bg-white");
+  }
+  return "";
+}
+
+function blockShell(title, innerHtml, bgClass){
+  return `
+    <section class="card rounded-2xl ${bgClass} p-5 mb-4 break-inside-avoid">
+      <h3 class="text-lg font-extrabold">${title}</h3>
+      <div class="mt-3 leading-8">${innerHtml}</div>
+    </section>
+  `;
+}
+
+function renderQuestion(q){
+  const p = getProgress(q.id);
+  const attempted = p.attempted;
+  const correct = p.correct;
+
+  const badge = attempted
+    ? (correct
+        ? `<span class="pill px-2 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold">صحيح ✅</span>`
+        : `<span class="pill px-2 py-1 rounded-full bg-rose-50 text-rose-800 text-xs font-bold">غير صحيح ❌</span>`)
+    : `<span class="pill px-2 py-1 rounded-full bg-slate-50 text-slate-700 text-xs font-bold">لم تُحاول بعد</span>`;
+
+  const hint = (state.mode === "teacher" || attempted) && q.hint
+    ? `<div class="mt-2 text-sm muted">💡 ${q.hint}</div>`
+    : "";
+
+  const answerReveal = (state.mode === "teacher")
+    ? renderAnswer(q)
+    : (attempted ? renderAnswer(q, true) : "");
+
+  let inputArea = "";
+  if(q.type === "input"){
+    inputArea = `
+      <div class="no-print mt-3 flex flex-col md:flex-row md:items-center gap-2">
+        <input id="in_${q.id}"
+               class="w-full md:w-64 pill rounded-xl px-3 py-2 bg-white"
+               placeholder="اكتب الإجابة هنا" inputmode="numeric"
+               oninput="this.value = toArabicDigits(toWesternDigits(this.value))" />
+        <button class="pill px-4 py-2 rounded-xl bg-slate-900 text-white hover:opacity-95"
+                onclick="checkInput('${q.id}', '${escapeHtml(q.answer)}')">تحقق</button>
+      </div>
+      <div class="print-show-blank"></div>
+    `;
+  } else if(q.type === "mcq"){
+    inputArea = `
+      <div class="no-print mt-3 grid gap-2">
+        ${q.choices.map((c, idx) => `
+          <label class="pill rounded-xl px-3 py-2 bg-white hover:bg-slate-50 cursor-pointer flex items-center gap-2">
+            <input type="radio" name="mcq_${q.id}" value="${idx}" class="w-4 h-4" />
+            <span>${c}</span>
+          </label>
+        `).join("")}
+        <button class="pill px-4 py-2 rounded-xl bg-slate-900 text-white hover:opacity-95"
+                onclick="checkMCQ('${q.id}', ${q.correctIndex})">تحقق</button>
+      </div>
+    `;
+  } else if(q.type === "tf"){
+    inputArea = `
+      <div class="no-print mt-3 flex flex-wrap gap-2">
+        <button class="pill px-4 py-2 rounded-xl bg-white hover:bg-slate-50"
+                onclick="checkTF('${q.id}', true, ${q.correctBool})">صح</button>
+        <button class="pill px-4 py-2 rounded-xl bg-white hover:bg-slate-50"
+                onclick="checkTF('${q.id}', false, ${q.correctBool})">خطأ</button>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="card rounded-2xl bg-white p-4 break-inside-avoid">
+      <div class="flex items-start justify-between gap-3">
+        <div class="text-base font-bold leading-8">${q.promptHtml}</div>
+        <div class="shrink-0">${badge}</div>
+      </div>
+      ${inputArea}
+      ${hint}
+      ${answerReveal}
+      <div id="msg_${q.id}" class="mt-2 text-sm"></div>
+    </div>
+  `;
+}
+
+function renderAnswer(q, forStudent=false){
+  if(q.type === "input"){
+    return `<div class="mt-2 text-sm ${forStudent ? 'muted' : ''}">✅ الإجابة: <span class="hl font-bold">${q.answer}</span></div>`;
+  }
+  if(q.type === "mcq"){
+    const correct = q.choices[q.correctIndex];
+    return `<div class="mt-2 text-sm ${forStudent ? 'muted' : ''}">✅ الإجابة: <span class="hl font-bold">${correct}</span></div>`;
+  }
+  if(q.type === "tf"){
+    return `<div class="mt-2 text-sm ${forStudent ? 'muted' : ''}">✅ الإجابة: <span class="hl font-bold">${q.correctBool ? "صح" : "خطأ"}</span></div>`;
+  }
+  return "";
+}
+
+function moduleStats(m){
+  const ids = [];
+  for(const b of m.blocks){
+    if(b.type === "quiz"){
+      for(const q of b.questions) ids.push(q.id);
+    }
+    if(b.type === "generator"){
+      const key = b.key;
+      const stored = state.dynamicQuestions[key] || [];
+      for(const q of stored) ids.push(q.id);
+    }
+  }
+  const attempted = ids.filter(id => getProgress(id).attempted);
+  if(attempted.length === 0) return { pct: 0, total: 0, correct: 0 };
+  const correct = attempted.filter(id => getProgress(id).correct).length;
+  const pct = Math.round((correct / attempted.length) * 100);
+  return { pct, total: attempted.length, correct };
+}
+
+/* =========================
+   Solved Toggle
+========================= */
+function showSolved(key){
+  state.dynamicQuestions.__solved = state.dynamicQuestions.__solved || {};
+  return !!state.dynamicQuestions.__solved[key];
+}
+window.toggleSolved = function(key){
+  state.dynamicQuestions.__solved = state.dynamicQuestions.__solved || {};
+  state.dynamicQuestions.__solved[key] = !state.dynamicQuestions.__solved[key];
+  save();
+  render();
+};
+
+/* =========================
+   Checkers
+========================= */
+window.checkInput = function(qid, expected){
+  const el = document.getElementById("in_" + qid);
+  const msg = document.getElementById("msg_" + qid);
+  const user = normalizeAnswer(el?.value);
+  const ok = user !== "" && user === normalizeAnswer(expected);
+  setProgress(qid, ok);
+
+  if(ok){
+    msg.className = "mt-2 text-sm text-emerald-700 font-bold";
+    msg.textContent = "أحسنت ✅ إجابة صحيحة.";
+  } else {
+    msg.className = "mt-2 text-sm text-rose-700 font-bold";
+    msg.textContent = "جرّب مرة أخرى ❌ وتذكّر القاعدة المظللة.";
+    el.classList.add("shake");
+    setTimeout(() => el.classList.remove("shake"), 250);
+  }
+  render();
+};
+
+window.checkMCQ = function(qid, correctIndex){
+  const msg = document.getElementById("msg_" + qid);
+  const radios = document.querySelectorAll(`input[name="mcq_${qid}"]`);
+  let chosen = null;
+  radios.forEach(r => { if(r.checked) chosen = Number(r.value); });
+
+  if(chosen === null){
+    msg.className = "mt-2 text-sm text-rose-700 font-bold";
+    msg.textContent = "اختر إجابة أولًا ثم اضغط تحقق.";
+    return;
+  }
+
+  const ok = (chosen === correctIndex);
+  setProgress(qid, ok);
+
+  if(ok){
+    msg.className = "mt-2 text-sm text-emerald-700 font-bold";
+    msg.textContent = "أحسنت ✅ اختيار صحيح.";
+  } else {
+    msg.className = "mt-2 text-sm text-rose-700 font-bold";
+    msg.textContent = "غير صحيح ❌ راجع التلميح ثم أعد المحاولة.";
+  }
+  render();
+};
+
+window.checkTF = function(qid, chosenBool, correctBool){
+  const msg = document.getElementById("msg_" + qid);
+  const ok = (chosenBool === correctBool);
+  setProgress(qid, ok);
+
+  if(ok){
+    msg.className = "mt-2 text-sm text-emerald-700 font-bold";
+    msg.textContent = "أحسنت ✅.";
+  } else {
+    msg.className = "mt-2 text-sm text-rose-700 font-bold";
+    msg.textContent = "غير صحيح ❌ راجع القاعدة المظللة.";
+  }
+  render();
+};
+
+/* =========================
+   Navigation
+========================= */
+window.goModule = function(id){
+  state.route = "module:" + id;
+  save();
+  render();
+};
+window.goHome = function(){
+  state.route = "home";
+  save();
+  render();
+};
+window.scrollToTop = function(){
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+/* =========================
+   Generator UI
+========================= */
+function fieldId(key, fkey){ return `gen_${key}_${fkey}`; }
+
+function renderField(key, f){
+  const id = fieldId(key, f.key);
+
+  if(f.type === "select"){
+    return `
+      <label class="card rounded-2xl bg-white p-4">
+        <div class="text-sm muted">${f.label}</div>
+        <select id="${id}" class="mt-2 w-full pill rounded-xl px-3 py-2 bg-white">
+          ${f.options.map(o => `<option value="${o}">${o}</option>`).join("")}
+        </select>
+      </label>
+    `;
+  }
+
+  // ✅ نجعلها text لتقبل الأرقام العربية وتعرضها عربية
+  if(f.type === "number"){
+    return `
+      <label class="card rounded-2xl bg-white p-4">
+        <div class="text-sm muted">${f.label}</div>
+        <input id="${id}" type="text" inputmode="numeric"
+               data-min="${f.min}" data-max="${f.max}"
+               value="${f.value ?? f.min}"
+               oninput="this.value = toArabicDigits(toWesternDigits(this.value))"
+               class="mt-2 w-full pill rounded-xl px-3 py-2 bg-white"/>
+        <div class="text-xs muted mt-1">من ${f.min} إلى ${f.max}</div>
+      </label>
+    `;
+  }
+
+  return "";
+}
+
+window.runGenerator = function(key){
+  const genFn = (window.__generators || {})[key];
+  if(!genFn) return;
+
+  const cfg = {};
+  const mod = modules.find(m => m.blocks.some(b => b.type === "generator" && b.key === key));
+  const block = mod?.blocks.find(b => b.type === "generator" && b.key === key);
+
+  (block?.fields || []).forEach(f => {
+    const el = document.getElementById(fieldId(key, f.key));
+    if(!el){ cfg[f.key] = null; return; }
+
+    if(f.type === "number"){
+      const min = Number(el.dataset.min || f.min || 1);
+      const max = Number(el.dataset.max || f.max || 99);
+      let v = parseInt(toWesternDigits(el.value), 10);
+      if(!Number.isFinite(v)) v = f.value ?? min;
+      v = Math.max(min, Math.min(max, v));
+      cfg[f.key] = v;
+      // أعد عرض القيمة عربية بعد الضبط
+      el.value = toArabicDigits(v);
+    } else {
+      cfg[f.key] = el.value;
+    }
+  });
+
+  const qs = genFn(cfg) || [];
+  state.dynamicQuestions[key] = qs;
+  save();
+  render();
+};
+
+window.clearGenerator = function(key){
+  state.dynamicQuestions[key] = [];
+  save();
+  render();
+};
+
+/* =========================
+   UI Buttons
+========================= */
+btnHome.addEventListener("click", () => goHome());
+
+toggleModeBtn.addEventListener("click", () => {
+  state.mode = (state.mode === "teacher") ? "student" : "teacher";
+  save();
+  render();
+});
+
+btnReset.addEventListener("click", () => {
+  if(confirm("هل تريد تصفير التقدّم؟")){
+    state.progress = {};
+    save();
+    render();
+  }
+});
+
+btnPrintStudent.addEventListener("click", () => {
+  const prev = state.mode;
+  state.mode = "student";
+  save();
+  render();
+  setTimeout(() => {
+    window.print();
+    state.mode = prev;
+    save();
+    render();
+  }, 250);
+});
+
+btnPrintTeacher.addEventListener("click", () => {
+  const prev = state.mode;
+  state.mode = "teacher";
+  save();
+  render();
+  setTimeout(() => {
+    window.print();
+    state.mode = prev;
+    save();
+    render();
+  }, 250);
+});
+
+/* =========================
+   Utils
+========================= */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, (m) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+
+/* =========================
+   Init
+========================= */
+load();
+render();
+</script>
+
+</body>
+</html>
